@@ -14,10 +14,13 @@ class App(QWidget):
     button = []
     click_event = Event()
     guest_UI_trigger = False
+    Ready = False
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontface.xml')
+    Face_Detected = False
     def __init__(self):
         super().__init__()
         ##### 개발할때는 아래 코드를 주석처리 하는걸 권장함 #####
-        self.setWindowFlag(Qt.FramelessWindowHint)
+        #self.setWindowFlag(Qt.FramelessWindowHint)
 
         ##### 생성과 관련된 코드 #####
         # opencv UI 화면 크기
@@ -191,57 +194,68 @@ class App(QWidget):
         self.button[10].setGeometry(QtCore.QRect(700, 380, 90, 90))
         self.button[11].setGeometry(QtCore.QRect(500, 380, 90, 90))
         self.button[12].setGeometry(QtCore.QRect(1500, 0, 90, 90))
-
         self.video.setGeometry(QtCore.QRect(10, 80,  self.disply_width, self.display_height))
         self.member_id.setGeometry(QtCore.QRect(500, 10, 90, 60))
         self.member_id_text.setGeometry(QtCore.QRect(590, 10, 200, 60))
         self.notification.setGeometry(QtCore.QRect(10, 455, 480, 20))
         self.vision_logo.setGeometry(QtCore.QRect(5, 0, 490, 70))
         self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
-
         self.member_id.setText(("회원\n번호"))
-        self.notification.setText(("손님일 경우 0000을 누른 후 확인을 눌러주세요."))
+
+        if not self.Ready:
+            self.notification.setText(("손님일 경우 0000을 누른 후 확인을 눌러주세요."))
+        
+        if self.Face_Detected:
+            self.video.setGeometry(QtCore.QRect(1500, 0,  self.disply_width, self.display_height))
+            self.loading.setGeometry(QtCore.QRect(0, 190, 480, 150))
+
+
+
         self.click_event.number = ""
         self.member_id_text.setText(f"{self.click_event.number}")
         self.repaint()
     
     # 확인버튼 이벤트
-    # 주의:통신으로 정보가 넘어간후 UI_update()를 통해 원상 복구를 해야함으로, 통신이 끝났음에 대한 trigger가 존재 해야함 
+    # 주의:통신으로 정보가 넘어간후 main_UI()를 통해 원상 복구를 해야함으로, 통신이 끝났음에 대한 trigger가 존재 해야함 
     def enter_event(self):
         change = 1500
         if(self.click_event.number == "0000"):
             self.guest_UI()
         else:
-            self.button[0].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[1].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[2].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[3].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[4].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[5].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[6].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[7].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[8].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[9].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[10].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[11].setGeometry(QtCore.QRect(change, 0, 90, 90))
-            self.button[12].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            self.Ready = True
+            self.notification.setText("두 사각형을 최대한 겹치게 해주세요")
 
-            self.video.setGeometry(QtCore.QRect(change, 0,  self.disply_width, self.display_height))
-            self.member_id.setGeometry(QtCore.QRect(change, 10, 90, 60))
-            self.member_id_text.setGeometry(QtCore.QRect(change, 0, 200, 60))
-            self.notification.setGeometry(QtCore.QRect(change, 0, 480, 20))
-            self.vision_logo.setGeometry(QtCore.QRect(change, 0, 490, 70))
-            self.loading.setGeometry(QtCore.QRect(0, 0, 800, 480))
+            # self.button[0].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[1].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[2].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[3].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[4].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[5].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[6].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[7].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[8].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[9].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[10].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[11].setGeometry(QtCore.QRect(change, 0, 90, 90))
+            # self.button[12].setGeometry(QtCore.QRect(change, 0, 90, 90))
 
-            self.click_event.number = ""
-            self.member_id_text.setText(f"{self.click_event.number}")
+            # self.video.setGeometry(QtCore.QRect(change, 0,  self.disply_width, self.display_height))
+            # self.member_id.setGeometry(QtCore.QRect(change, 10, 90, 60))
+            # self.member_id_text.setGeometry(QtCore.QRect(change, 0, 200, 60))
+            # self.notification.setGeometry(QtCore.QRect(change, 0, 480, 20))
+            # self.vision_logo.setGeometry(QtCore.QRect(change, 0, 490, 70))
+            # self.loading.setGeometry(QtCore.QRect(0, 0, 800, 480))
+            
+            
+
+            # self.click_event.number = ""
+            # self.member_id_text.setText(f"{self.click_event.number}")
             self.repaint()
 
             # time.sleep 사용시 스래드가 멈춤
             # 유사한 기능을 구현하기 위해 time.sleep를 사용함
-            print("2초뒤 복귀합니다.")
-            time.sleep(2)
             self.main_UI()
+
     
     # 뒤로 버튼과 삭제버튼 교환 기능
     def button_trigger(self):
@@ -310,7 +324,45 @@ class App(QWidget):
     def convert_cv_qt(self, cv_img):
         
         rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        h, w, ch = rgb_image.shape
+        h, w, ch = rgb_image.shape #(360, 480, 3)
+        if self.Ready == True and self.Face_Detected == False:
+            box1 = [150, 80, 330, 260]
+            gray = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
+            cv2.rectangle(rgb_image, (150, 80), (330, 260), (0, 0, 0), 2)
+            faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)
+
+            if len(faces) == 1:
+                x, y, width, height = faces[0, 0], faces[0, 1], faces[0, 2], faces[0, 3]
+                cv2.rectangle(rgb_image,(x,y),(x+width,y+height),(255,0,0),2)
+                box2 = [x, y, x+height, y+width]
+                
+                box1_area = (box1[2] - box1[0] + 1) * (box1[3] - box1[1] + 1)
+                box2_area = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1)
+
+                # obtain x1, y1, x2, y2 of the intersection
+                x1 = max(box1[0], box2[0])
+                y1 = max(box1[1], box2[1])
+                x2 = min(box1[2], box2[2])
+                y2 = min(box1[3], box2[3])
+
+                # compute the width and height of the intersection
+                Width = max(0, x2 - x1 + 1)
+                Height = max(0, y2 - y1 + 1)
+
+                inter = Width * Height
+                iou = inter / (box1_area + box2_area - inter)
+                print(iou)
+
+                if iou > 0.75:
+                    self.roi_color = rgb_image[y:y+height, x:x+width]
+                    self.Face_Detected = True
+                    self.main_UI()
+
+
+            if len(faces) >= 2:
+                print("얼굴이 두명")
+
+
         bytes_per_line = ch * w
         convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
         p = convert_to_Qt_format.scaled(self.disply_width, self.display_height, Qt.KeepAspectRatio)

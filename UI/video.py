@@ -16,14 +16,15 @@ class VideoThread(QThread):
         cap = cv2.VideoCapture(0)
         # opencv 카메라 화질 설정
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 672)
+        cap.set(cv2.CAP_PROP_FPS, 20)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 378)
         
         try:
             while self._run_flag:
                 ret, cv_img = cap.read()
                 # UI 사이즈랑 맟주기 위해 행렬 자르기
-                cv_img = cv_img[:self.display_height, :self.disply_width]
-
+                cv_img = cv_img[4:self.display_height+4, 90:self.disply_width+90]
+                
                 if ret:
                     # pyqt에서 지원하는 사용자 정의 시그널
                     self.change_pixmap_signal.emit(cv_img)
