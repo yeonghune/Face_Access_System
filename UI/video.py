@@ -4,7 +4,7 @@ import numpy as np
 
 # QThread 스래드 활성화
 class VideoThread(QThread):
-    change_pixmap_signal = pyqtSignal(np.ndarray)
+    change_pixmap_signal = pyqtSignal(np.ndarray, bool)
     def __init__(self, disply_width, display_height):
         super().__init__()
         self._run_flag = True
@@ -27,7 +27,7 @@ class VideoThread(QThread):
                 
                 if ret:
                     # pyqt에서 지원하는 사용자 정의 시그널
-                    self.change_pixmap_signal.emit(cv_img)
+                    self.change_pixmap_signal.emit(cv_img, ret)
         except:
             print("카메라를 확인하세요")
         cap.release()

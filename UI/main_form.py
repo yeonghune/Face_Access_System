@@ -5,21 +5,21 @@ from PyQt5.QtCore import pyqtSlot, Qt
 from button_str_event import Event
 from video import VideoThread
 from text_animation import TextAnimation
+from communication import Communication
+from PyQt5.QtTest import *
 import numpy as np
-import time
 import sys
 import cv2
-import requests
-import threading
+import time
 
-URL = "http://220.69.240.148:26999/receive"
 
 class App(QWidget):
     button = []
     click_event = Event()
     guest_UI_trigger = False
+    ret_trigger = True
     Ready = False
-    face_cascade = cv2.CascadeClassifier('UI\haarcascade_frontface.xml')
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontface.xml')
     Face_Detected = False
     status = False
     Dont_capture = False
@@ -94,6 +94,16 @@ class App(QWidget):
         self.vision_logo.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.vision_logo.setObjectName("vision_logo")
 
+        self.end_img = QtWidgets.QLabel(self)
+        self.end_img.setGeometry(QtCore.QRect(1500, 0, 240, 240))
+        font = QtGui.QFont()
+        font.setPointSize(6)
+        self.end_img.setFont(font)
+        self.end_img.setPixmap(QtGui.QPixmap("image/end_img.png"))
+        self.member_id.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.end_img.setObjectName("end_img")
+
         # 버튼 생성
         self.button_design(600, 380, 0)
         self.button_design(500, 80, 1)
@@ -156,6 +166,7 @@ class App(QWidget):
         self.button[11].clicked.connect(self.id_text_update)
         self.button[11].clicked.connect(self.button_trigger)
 
+        self.button[12].clicked.connect(self.F_Radey)
         self.button[12].clicked.connect(self.main_UI)
 
         ##### 스래드 실행 코드 #####
@@ -168,9 +179,12 @@ class App(QWidget):
         self.loading_thread = TextAnimation()
         self.loading_thread.text_animation_signal.connect(self.update_text)
         self.loading_thread.start()
+
+        self.button_Disa(True)
         
         QtCore.QMetaObject.connectSlotsByName(self)
         
+    ##### 상호작용을 위한 함수들 #####
     # 손님용 UI
     # 주의: 나이에 대한 정보는 self.click_event.number에 담겨짐
     def guest_UI(self):
@@ -207,54 +221,52 @@ class App(QWidget):
         self.vision_logo.setGeometry(QtCore.QRect(5, 0, 490, 70))
         self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
         self.member_id.setText(("회원\n번호"))
+        self.end_img.setGeometry(QtCore.QRect(1500, 0, 240, 240))
 
+
+        if(self.Ready):
+            self.button_Disa(True)
+            self.button[12].setGeometry(QtCore.QRect(500, 380, 90, 90))
+            self.button[11].setGeometry(QtCore.QRect(1500, 0, 90, 90))
+            self.button[12].setEnabled(True)
+            
         if not self.Ready:
             self.notification.setText(("손님일 경우 0000을 누른 후 확인을 눌러주세요."))
             self.click_event.number = ""
-        
+            self.button_Disa(False)
+
         if self.Face_Detected:
+            self.button_Disa(True)
             self.Face_Detected = False
             self.Dont_capture = True
             self.video.setGeometry(QtCore.QRect(1500, 0,  self.disply_width, self.display_height))
             self.loading.setGeometry(QtCore.QRect(0, 190, 480, 150))
-            communication_thread = threading.Thread(target=self.Transmission, args=(self.click_event.number, self.roi_color))
-            communication_thread.start()
+
+            # communication 스래드 실행
+            self.communication_thread = Communication(self.click_event.number, self.roi_color)
+            self.communication_thread.communication_signal.connect(self.Transmission)
+            self.communication_thread.start()
 
         self.member_id_text.setText(f"{self.click_event.number}")
-        #self.repaint()
-    
-    def Transmission(self, Id, img):
-        data = {}
-        self.notification.setText(("잠시만 기다려 주십시오."))
-        self.notification
-        data['Id'] = Id
-        data['Face'] = img.tolist()
-        response = requests.post(URL, json = data)
-        print(response.text)
-        if response.text == 'True':
-            self.status = True
-            self.Ready = False
-            self.Dont_capture = False
-            self.main_UI()
-    
+        self.repaint()
+
+    def F_Radey(self):
+        self.Ready = False
+        
     # 확인버튼 이벤트
     # 주의:통신으로 정보가 넘어간후 main_UI()를 통해 원상 복구를 해야함으로, 통신이 끝났음에 대한 trigger가 존재 해야함 
     def enter_event(self):
-        change = 1500
         if(self.click_event.number == "0000"):
             self.guest_UI()
         else:
             self.Ready = True
             self.notification.setText("두 사각형을 최대한 겹치게 해주세요")
-
-            
             self.repaint()
 
             # time.sleep 사용시 스래드가 멈춤
             # 유사한 기능을 구현하기 위해 time.sleep를 사용함
             self.main_UI()
 
-    
     # 뒤로 버튼과 삭제버튼 교환 기능
     def button_trigger(self):
         if(self.guest_UI_trigger == True):
@@ -290,14 +302,26 @@ class App(QWidget):
         self.button[index].setFont(font)
         self.button[index].setObjectName(f"button{index}")
     
+    # 버튼 활성화 및 비활성화
+    def button_Disa(self, change):
+        for i in range(0, 13):
+            if(change == True):
+                self.button[i].setDisabled(True)
+            if(change == False):
+                self.button[i].setEnabled(True)
+
     # member_id_text의 text업데이트
     def id_text_update(self):
         self.member_id_text.setText(f"{self.click_event.number}")
         self.member_id_text.repaint()
     
+    ##### 스래드 값 관리하는 함수 #####
     # video 스래드 값을 받아옴
-    @pyqtSlot(np.ndarray)
-    def update_image(self, cv_img):
+    @pyqtSlot(np.ndarray, bool)
+    def update_image(self, cv_img, ret):
+        if(ret and self.ret_trigger):
+            self.ret_trigger = False
+            self.button_Disa(False)
         qt_img = self.convert_cv_qt(cv_img)
         self.video.setPixmap(qt_img)
 
@@ -317,10 +341,26 @@ class App(QWidget):
             self.loading.setText(("loading..."))
             self.repaint()
 
+    # communication 스래드 값을 받아옴
+    @pyqtSlot(str)
+    def Transmission(self, trigger):
+        self.notification.setText(("잠시만 기다려 주십시오."))
+        if trigger == 'True':
+            self.status = True
+            self.Ready = False
+            self.Dont_capture = False
+            self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
+            self.end_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.notification.setText(("완료되었습니다."))
+            self.communication_thread.stop()
+
+            QTest.qWait(2000)
+            self.main_UI()
+
+    ##### 이미지 관리 #####
     # opencv 화면 출력시 필요한 부분
     # 주의: 원본 이미지에 대한 정보는 video 클래스에서 처리해야 함
     def convert_cv_qt(self, cv_img):
-        
         rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
         origin = rgb_image[:,:].copy()
         h, w, ch = rgb_image.shape #(360, 480, 3)
@@ -350,17 +390,14 @@ class App(QWidget):
 
                 inter = Width * Height
                 iou = inter / (box1_area + box2_area - inter)
-                print(iou)
 
                 if iou > 0.75:
                     self.roi_color = origin[y:y+height, x:x+width]
                     self.Face_Detected = True
                     self.main_UI()
 
-
             if len(faces) >= 2:
                 print("얼굴이 두명")
-
 
         bytes_per_line = ch * w
         convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
