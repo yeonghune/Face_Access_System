@@ -1,6 +1,6 @@
 # 얼굴 인식 출입체계
 
-
+![sample](UI/image/sample.png) 
 
 ## 💻프로젝트 소개
 
