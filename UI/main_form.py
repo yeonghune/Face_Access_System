@@ -7,13 +7,17 @@ from video import VideoThread
 from text_animation import TextAnimation
 from FCommunication import FCommunication
 from ICommunication import ICommunication
+from GCommunication import GCommunication
 from PyQt5.QtTest import *
 import numpy as np
 import sys
 import cv2
+import tensorflow as tf
+from tensorflow import keras
 
 class App(QWidget):
     button = []
+    model = keras.models.load_model('21-0.0816.h5')
     click_event = Event()
     # guest_UI 실행될때
     guest_UI_trigger = False
@@ -264,10 +268,24 @@ class App(QWidget):
             self.video.setGeometry(QtCore.QRect(1500, 0,  self.disply_width, self.display_height))
             self.loading.setGeometry(QtCore.QRect(0, 190, 480, 150))
 
+            Input = self.roi_color/255
+            Input = np.expand_dims(Input, axis = 0)
+            pred = self.model.predict(Input)
+            # print(pred[0][0])
+            ## 이상1>0.5 나이, 성별
             # FCommunication 스래드 실행
-            self.FCommunication_thread = FCommunication(self.click_event.number, self.roi_color)
-            self.FCommunication_thread.FCommunication_signal.connect(self.FTransmission)
-            self.FCommunication_thread.start()
+            self.GCommunication_thread = GCommunication(self.click_event.number, pred[0][0])
+            self.GCommunication_thread.GCommunication_signal.connect(self.GTransmission)
+            self.GCommunication_thread.start()
+            self.Find_Face_trigger = False
+            self.capture_trigger = False
+            self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
+            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.notification.setText(("완료되었습니다."))
+            QTest.qWait(2000)
+            self.GCommunication_thread.stop()
+
+            self.main_UI()
 
         self.repaint()
         
@@ -408,6 +426,12 @@ class App(QWidget):
             self.video.setGeometry(QtCore.QRect(10, 80,  self.disply_width, self.display_height))
             self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
 
+    @pyqtSlot(bool)
+    def GTransmission(self, trigger):
+        print(trigger)
+        
+        
+
     ##### 이미지 관리 #####
     # opencv 화면 출력시 필요한 부분
     # 주의: 원본 이미지에 대한 정보는 video 클래스에서 처리해야 함
@@ -415,7 +439,7 @@ class App(QWidget):
         rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
         origin = rgb_image[:,:].copy()
         h, w, ch = rgb_image.shape #(360, 480, 3)
-        if self.Find_Face_trigger == True and self.capture_trigger == False:
+        if self.Find_Face_trigger == True and self.capture_trigger == False: 
             box1 = [150, 80, 330, 260]
             gray = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY)
             cv2.rectangle(rgb_image, (150, 80), (330, 260), (0, 0, 0), 2)
@@ -444,8 +468,10 @@ class App(QWidget):
 
                 if iou > 0.75:
                     self.roi_color = origin[y:y+height, x:x+width]
+                    self.roi_color = cv2.resize(self.roi_color, (224, 224))
                     self.Face_Detected_trigger = True
-                    self.ICommunication_thread.stop()
+                    if self.guest_UI_trigger == False:
+                        self.ICommunication_thread.stop()
 
                     if (self.guest_UI_trigger):
                         self.guest_UI()
