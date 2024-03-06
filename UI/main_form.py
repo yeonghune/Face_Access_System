@@ -220,7 +220,6 @@ class App(QWidget):
             self.button_Disa(True)
             self.button[12].setGeometry(QtCore.QRect(500, 380, 90, 90))
             self.button[11].setGeometry(QtCore.QRect(1500, 0, 90, 90))
-            self.button[12].setEnabled(True)
         
         elif self.Find_Face_trigger == False:
             self.notification.setText(("손님일 경우 0000을 누른 후 확인을 눌러주세요."))
@@ -274,20 +273,24 @@ class App(QWidget):
         
     # 확인버튼 이벤트
     def enter_event(self):
-        if self.click_event.number == "0000":
-            self.guest_UI()
+        if self.click_event.number == "":
+            self.notification.setText(("번호를 입력하세요."))
+            
         else:
-            self.Find_Face_trigger = True
-            if self.guest_UI_trigger == False:
-                self.ICommunication_thread = ICommunication(self.click_event.number)
-                self.ICommunication_thread.ICommunication_signal.connect(self.ITransmission)
-                self.ICommunication_thread.start() 
-            self.repaint()
+            if self.click_event.number == "0000":
+                self.guest_UI()
+            else:
+                self.Find_Face_trigger = True
+                if self.guest_UI_trigger == False:
+                    self.ICommunication_thread = ICommunication(self.click_event.number)
+                    self.ICommunication_thread.ICommunication_signal.connect(self.ITransmission)
+                    self.ICommunication_thread.start() 
+                self.repaint()
 
-        if self.guest_UI_trigger == True:
-            self.guest_UI()
-        elif self.guest_UI_trigger == False:
-            self.main_UI()
+            if self.guest_UI_trigger == True:
+                self.guest_UI()
+            elif self.guest_UI_trigger == False:
+                self.main_UI()
 
     # 뒤로 버튼과 삭제버튼 교환 하기 위한 버튼 이벤트 추적
     def button_trigger(self):
@@ -380,6 +383,7 @@ class App(QWidget):
     @pyqtSlot(str)
     def FTransmission(self, trigger):
         self.notification.setText(("잠시만 기다려 주십시오."))
+        print(trigger)
         if trigger == 'True':
             self.status = True
             self.Find_Face_trigger = False
@@ -397,7 +401,9 @@ class App(QWidget):
         self.notification.setText(("잠시만 기다려 주십시오."))
         self.video.setGeometry(QtCore.QRect(1500, 0,  self.disply_width, self.display_height))
         self.loading.setGeometry(QtCore.QRect(0, 190, 480, 150))
+        print("작동중")
         if trigger == 'True':
+            self.button[12].setEnabled(True)
             self.notification.setText("두 사각형을 최대한 겹치게 해주세요")
             self.video.setGeometry(QtCore.QRect(10, 80,  self.disply_width, self.display_height))
             self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
