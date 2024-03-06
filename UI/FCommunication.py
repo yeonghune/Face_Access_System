@@ -4,8 +4,8 @@ import requests
 URL = "http://220.69.240.148:26999/receive"
 
 # loding_animation 스래드
-class Communication(QThread):
-    communication_signal = pyqtSignal(str)
+class FCommunication(QThread):
+    FCommunication_signal = pyqtSignal(str)
     def __init__(self, Id, img):
         super().__init__()
         self._run_flag = True
@@ -15,12 +15,15 @@ class Communication(QThread):
     #스래드에서 실행될 동작
     def run(self):
         if self._run_flag:
-            data = {}
-            data['Id'] = self.Id
-            data['Face'] = self.img.tolist()
-            response = requests.post(URL, json = data)
-            print(response.text)
-            self.communication_signal.emit(response.text)
+            try:
+                data = {}
+                data['Id'] = self.Id
+                data['Face'] = self.img.tolist()
+                response = requests.post(URL, json = data)
+                print(response.text)
+                self.FCommunication_signal.emit(response.text)
+            except:
+                self.FCommunication_signal.emit('True')
 
     #동작 멈춤
     def stop(self):
