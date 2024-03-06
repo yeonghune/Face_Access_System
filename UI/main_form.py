@@ -5,7 +5,8 @@ from PyQt5.QtCore import pyqtSlot, Qt
 from button_str_event import Event
 from video import VideoThread
 from text_animation import TextAnimation
-from communication import Communication
+from FCommunication import FCommunication
+from ICommunication import ICommunication
 from PyQt5.QtTest import *
 import numpy as np
 import sys
@@ -98,14 +99,14 @@ class App(QWidget):
         self.vision_logo.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.vision_logo.setObjectName("vision_logo")
 
-        self.end_img = QtWidgets.QLabel(self)
-        self.end_img.setGeometry(QtCore.QRect(1500, 0, 240, 240))
+        self.O_img = QtWidgets.QLabel(self)
+        self.O_img.setGeometry(QtCore.QRect(1500, 0, 240, 240))
         font = QtGui.QFont()
         font.setPointSize(6)
-        self.end_img.setFont(font)
-        self.end_img.setPixmap(QtGui.QPixmap("image/end_img.png"))
-        self.end_img.setAlignment(QtCore.Qt.AlignCenter)
-        self.end_img.setObjectName("end_img")
+        self.O_img.setFont(font)
+        self.O_img.setPixmap(QtGui.QPixmap("image/O_img.png"))
+        self.O_img.setAlignment(QtCore.Qt.AlignCenter)
+        self.O_img.setObjectName("O_img")
 
         # 버튼 생성
         self.button_design(600, 380, 0)
@@ -169,7 +170,7 @@ class App(QWidget):
         self.button[11].clicked.connect(self.id_text_update)
         self.button[11].clicked.connect(self.button_trigger)
 
-        self.button[12].clicked.connect(self.Find_Face_trigger_False)
+        self.button[12].clicked.connect(self.back_event)
         self.button[12].clicked.connect(self.main_UI)
 
         ##### 스래드 실행 코드 #####
@@ -213,30 +214,29 @@ class App(QWidget):
         self.vision_logo.setGeometry(QtCore.QRect(5, 0, 490, 70))
         self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
         self.member_id.setText(("회원\n번호"))
-        self.end_img.setGeometry(QtCore.QRect(1500, 0, 240, 240))
+        self.O_img.setGeometry(QtCore.QRect(1500, 0, 240, 240))
 
-
-        if(self.Find_Face_trigger == True):
+        if self.Find_Face_trigger == True:
             self.button_Disa(True)
             self.button[12].setGeometry(QtCore.QRect(500, 380, 90, 90))
             self.button[11].setGeometry(QtCore.QRect(1500, 0, 90, 90))
             self.button[12].setEnabled(True)
         
-        elif(self.Find_Face_trigger == False):
+        elif self.Find_Face_trigger == False:
             self.notification.setText(("손님일 경우 0000을 누른 후 확인을 눌러주세요."))
             self.click_event.number = ""
             self.button_Disa(False)
 
-        if (self.Face_Detected_trigger == True):
+        if self.Face_Detected_trigger == True:
             self.button_Disa(True)
             self.Face_Detected_trigger = False
             self.capture_trigger = True
             self.video.setGeometry(QtCore.QRect(1500, 0,  self.disply_width, self.display_height))
             self.loading.setGeometry(QtCore.QRect(0, 190, 480, 150))
-            # communication 스래드 실행
-            self.communication_thread = Communication(self.click_event.number, self.roi_color)
-            self.communication_thread.communication_signal.connect(self.Transmission)
-            self.communication_thread.start()
+            # FCommunication 스래드 실행
+            self.FCommunication_thread = FCommunication(self.click_event.number, self.roi_color)
+            self.FCommunication_thread.FCommunication_signal.connect(self.FTransmission)
+            self.FCommunication_thread.start()
 
         self.member_id_text.setText(f"{self.click_event.number}")
         self.repaint()
@@ -250,12 +250,12 @@ class App(QWidget):
         self.button_exchange("back")
         self.guest_UI_trigger = True
         
-        if(self.Find_Face_trigger == True):
+        if self.Find_Face_trigger == True:
             self.button_Disa(True)
             self.button_exchange("back")
             self.button[12].setEnabled(True)
         
-        elif(self.Find_Face_trigger == False):
+        elif self.Find_Face_trigger == False:
             self.click_event.number = ""
 
         if self.Face_Detected_trigger == True:
@@ -265,42 +265,45 @@ class App(QWidget):
             self.video.setGeometry(QtCore.QRect(1500, 0,  self.disply_width, self.display_height))
             self.loading.setGeometry(QtCore.QRect(0, 190, 480, 150))
 
-            # communication 스래드 실행
-            self.communication_thread = Communication(self.click_event.number, self.roi_color)
-            self.communication_thread.communication_signal.connect(self.Transmission)
-            self.communication_thread.start()
+            # FCommunication 스래드 실행
+            self.FCommunication_thread = FCommunication(self.click_event.number, self.roi_color)
+            self.FCommunication_thread.FCommunication_signal.connect(self.FTransmission)
+            self.FCommunication_thread.start()
 
         self.repaint()
         
     # 확인버튼 이벤트
     def enter_event(self):
-        if(self.click_event.number == "0000"):
+        if self.click_event.number == "0000":
             self.guest_UI()
         else:
             self.Find_Face_trigger = True
-            self.notification.setText("두 사각형을 최대한 겹치게 해주세요")
+            if self.guest_UI_trigger == False:
+                self.ICommunication_thread = ICommunication(self.click_event.number)
+                self.ICommunication_thread.ICommunication_signal.connect(self.ITransmission)
+                self.ICommunication_thread.start() 
             self.repaint()
 
-        if (self.guest_UI_trigger):
+        if self.guest_UI_trigger == True:
             self.guest_UI()
-        else:
+        elif self.guest_UI_trigger == False:
             self.main_UI()
 
     # 뒤로 버튼과 삭제버튼 교환 하기 위한 버튼 이벤트 추적
     def button_trigger(self):
-        if(self.guest_UI_trigger == True):
-            if(self.click_event.number == ""):
+        if self.guest_UI_trigger == True:
+            if self.click_event.number == "":
                 self.button_exchange("back")
             else:
                 self.button_exchange("delete")
 
     # 뒤로 버튼과 삭제버튼 교환
     def button_exchange(self, state):
-        if(state == "back"):
+        if state == "back":
             self.button[12].setGeometry(QtCore.QRect(500, 380, 90, 90))
             self.button[11].setGeometry(QtCore.QRect(1500, 0, 90, 90))
             self.repaint()
-        elif(state == "delete"):
+        elif state == "delete":
             self.button[12].setGeometry(QtCore.QRect(1500, 0, 90, 90))
             self.button[11].setGeometry(QtCore.QRect(500, 380, 90, 90))
             self.repaint()
@@ -311,16 +314,16 @@ class App(QWidget):
         self.button[index].setGeometry(QtCore.QRect(x, y, 90, 90))
         font = QtGui.QFont()
         font.setFamily("Arial")
-        if(index < 10):
+        if index < 10:
             font.setPointSize(48)
             self.button[index].setText(f"{index}")
-        elif(index == 10):
+        elif index == 10:
             font.setPointSize(24)
             self.button[index].setText("확인")
-        elif(index == 11):
+        elif index == 11:
             font.setPointSize(24)
             self.button[index].setText("삭제")  
-        elif(index == 12):
+        elif index == 12:
             font.setPointSize(24)
             self.button[index].setText("뒤로")
         else:
@@ -342,7 +345,9 @@ class App(QWidget):
         self.member_id_text.repaint()
     
     # Find_Face_trigger를 False로 바꾸는 함수
-    def Find_Face_trigger_False(self):
+    def back_event(self):
+        if self.guest_UI_trigger == False:
+            self.ICommunication_thread.stop()
         self.Find_Face_trigger = False
     
     ##### 스래드 값 관리하는 함수 #####
@@ -371,21 +376,31 @@ class App(QWidget):
             self.loading.setText(("loading..."))
             self.repaint()
 
-    # communication 스래드 값을 받아옴
+    # FCommunication 스래드 값을 받아옴
     @pyqtSlot(str)
-    def Transmission(self, trigger):
+    def FTransmission(self, trigger):
         self.notification.setText(("잠시만 기다려 주십시오."))
         if trigger == 'True':
             self.status = True
             self.Find_Face_trigger = False
             self.capture_trigger = False
             self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
-            self.end_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
             self.notification.setText(("완료되었습니다."))
-            self.communication_thread.stop()
+            self.FCommunication_thread.stop()
 
             QTest.qWait(2000)
             self.main_UI()
+
+    @pyqtSlot(str)
+    def ITransmission(self, trigger):
+        self.notification.setText(("잠시만 기다려 주십시오."))
+        self.video.setGeometry(QtCore.QRect(1500, 0,  self.disply_width, self.display_height))
+        self.loading.setGeometry(QtCore.QRect(0, 190, 480, 150))
+        if trigger == 'True':
+            self.notification.setText("두 사각형을 최대한 겹치게 해주세요")
+            self.video.setGeometry(QtCore.QRect(10, 80,  self.disply_width, self.display_height))
+            self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
 
     ##### 이미지 관리 #####
     # opencv 화면 출력시 필요한 부분
@@ -424,6 +439,8 @@ class App(QWidget):
                 if iou > 0.75:
                     self.roi_color = origin[y:y+height, x:x+width]
                     self.Face_Detected_trigger = True
+                    self.ICommunication_thread.stop()
+
                     if (self.guest_UI_trigger):
                         self.guest_UI()
                     else:
