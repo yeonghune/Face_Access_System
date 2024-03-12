@@ -2,7 +2,7 @@ from PyQt5.QtCore import pyqtSignal, QThread
 from PyQt5.QtTest import *
 import requests
 
-URL = "http://220.69.240.148:26999/receive"
+URL = "http://192.168.0.4:3000/checkMember"
 
 # loding_animation 스래드
 class ICommunication(QThread):
@@ -10,19 +10,20 @@ class ICommunication(QThread):
     def __init__(self, Id):
         super().__init__()
         self._run_flag = True
-        self.Id = Id
+        self.data = {}
+        self.data['pin'] = Id
 
     #스래드에서 실행될 동작
     def run(self):
         if self._run_flag:
             try:
-                self.ICommunication_signal.emit('False')
+                self.ICommunication_signal.emit(None)
+                response = requests.post(URL, json=self.data)
+                print(response.text)
+                
+                QTest.qWait(1000)
 
-                print("확인")
-                QTest.qWait(2000)
-                print("완료")
-
-                self.ICommunication_signal.emit('True')
+                self.ICommunication_signal.emit(response.text)
                 
             except:
                 self.ICommunication_signal.emit('False')
