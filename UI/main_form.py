@@ -413,6 +413,24 @@ class App(QWidget):
 
             QTest.qWait(2000)
             self.main_UI()
+        elif trigger == 'False':
+            self.status = True
+            self.Find_Face_trigger = False
+            self.capture_trigger = False
+            self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
+            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.notification.setText(("회원이 아닙니다."))
+            QTest.qWait(1000)
+            self.main_UI()
+        else:
+            self.status = True
+            self.Find_Face_trigger = False
+            self.capture_trigger = False
+            self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
+            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.notification.setText(("회원이 아닙니다."))
+            QTest.qWait(1000)
+            self.main_UI()
 
     @pyqtSlot(str)
     def ITransmission(self, trigger):
@@ -420,12 +438,26 @@ class App(QWidget):
         self.video.setGeometry(QtCore.QRect(1500, 0,  self.disply_width, self.display_height))
         self.loading.setGeometry(QtCore.QRect(0, 190, 480, 150))
         print("작동중")
-        if trigger == 'True':
+        if trigger == 'true':
             self.button[12].setEnabled(True)
             self.notification.setText("두 사각형을 최대한 겹치게 해주세요")
             self.video.setGeometry(QtCore.QRect(10, 80,  self.disply_width, self.display_height))
             self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
-
+        elif trigger == 'false':
+            self.Find_Face_trigger = False
+            self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
+            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.notification.setText(("회원이 아닙니다."))
+            QTest.qWait(1000)
+            self.main_UI()
+        else:
+            self.Find_Face_trigger = False
+            self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
+            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.notification.setText(("회원이 아닙니다."))
+            QTest.qWait(1000)
+            self.main_UI()
+            
     @pyqtSlot(bool)
     def GTransmission(self, trigger):
         print(trigger)
@@ -468,7 +500,8 @@ class App(QWidget):
 
                 if iou > 0.75:
                     self.roi_color = origin[y:y+height, x:x+width]
-                    self.roi_color = cv2.resize(self.roi_color, (224, 224))
+                    self.roi_color = cv2.resize(self.roi_color, (112, 112))
+                    self.roi_color = cv2.cvtColor(self.roi_color, cv2.COLOR_BGR2RGB)
                     self.Face_Detected_trigger = True
                     if self.guest_UI_trigger == False:
                         self.ICommunication_thread.stop()
