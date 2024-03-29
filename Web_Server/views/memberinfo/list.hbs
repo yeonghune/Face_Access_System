@@ -1,0 +1,24 @@
+<h3>회원 정보 목록</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>성명</th>
+            <th>핀번호</th>
+            <th>성별</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each list}}
+        <tr>
+            <td>{{this.fullName}}</td>
+            <td>{{this.pin}}</td>
+            <td>{{this.gender}}</td>
+            <td>
+               <!-- <a href="/memberinfo/{{this._id}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></a> -->
+                <a href="/memberinfo/delete/{{this._id}}" onclick="return confirm('Are you sure to delete this record ?');"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></a>
+            </td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>

@@ -1,0 +1,24 @@
+<h3>게스트 출입 목록</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>순번</th>
+            <th>출입시간</th>
+            <th>성별</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each list}}
+        <tr>
+            <td>{{this.sequence}}</td>
+            <td>{{this.time}}</td>
+            <td>{{this.gender}}</td>
+            <td>
+                <!-- <a href="/guest/{{this._id}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></a> -->
+                <a href="/guest/delete/{{this._id}}" onclick="return confirm('Are you sure to delete this record ?');"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></a>
+            </td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
