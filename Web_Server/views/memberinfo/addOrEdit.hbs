@@ -1,0 +1,26 @@
+<h3>{{viewTitle}}</h3>
+
+<form action="/memberinfo" method="POST" autocomplete="off">
+    <input type="hidden" name="_id" value="{{memberinfo._id}}">
+    <div class="form-group">
+        <label>성명</label>
+        <input type="text" class="form-control" name="fullName" placeholder="성명" value="{{memberinfo.fullName}}">
+        <div class="text-danger">
+            {{memberinfo.fullNameError}}</div>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label>핀번호</label>
+            <input type="text" class="form-control" name="pin" placeholder="핀번호" value="{{memberinfo.pin}}">
+        </div>
+        <div class="form-group col-md-6">
+            <label>성별</label>
+            <input type="text" class="form-control" name="gender" placeholder="성별" value="{{memberinfo.gender}}">
+        </div>
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-info"><i class="fa fa-database"></i> 입력</button>
+        <a class="btn btn-secondary" href="/memberinfo/list"><i class="fa fa-list-alt"></i> 목록</a>
+    </div>
+</form>
