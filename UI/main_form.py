@@ -111,6 +111,15 @@ class App(QWidget):
         self.O_img.setPixmap(QtGui.QPixmap("image/O_img.png"))
         self.O_img.setAlignment(QtCore.Qt.AlignCenter)
         self.O_img.setObjectName("O_img")
+        
+        self.X_img = QtWidgets.QLabel(self)
+        self.X_img.setGeometry(QtCore.QRect(1500, 0, 240, 240))
+        font = QtGui.QFont()
+        font.setPointSize(6)
+        self.X_img.setFont(font)
+        self.X_img.setPixmap(QtGui.QPixmap("image/X_img.png"))
+        self.X_img.setAlignment(QtCore.Qt.AlignCenter)
+        self.X_img.setObjectName("X_img")
 
         # 버튼 생성
         self.button_design(600, 380, 0)
@@ -219,6 +228,7 @@ class App(QWidget):
         self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
         self.member_id.setText(("회원\n번호"))
         self.O_img.setGeometry(QtCore.QRect(1500, 0, 240, 240))
+        self.X_img.setGeometry(QtCore.QRect(1500, 0, 240, 240))
 
         if self.Find_Face_trigger == True:
             self.button_Disa(True)
@@ -418,7 +428,7 @@ class App(QWidget):
             self.Find_Face_trigger = False
             self.capture_trigger = False
             self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
-            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.X_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
             self.notification.setText(("회원이 아닙니다."))
             QTest.qWait(1000)
             self.main_UI()
@@ -427,8 +437,8 @@ class App(QWidget):
             self.Find_Face_trigger = False
             self.capture_trigger = False
             self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
-            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
-            self.notification.setText(("회원이 아닙니다."))
+            self.X_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.notification.setText(("서버에 오류가 있습니다."))
             QTest.qWait(1000)
             self.main_UI()
 
@@ -446,15 +456,17 @@ class App(QWidget):
         elif trigger == 'false':
             self.Find_Face_trigger = False
             self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
-            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.X_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
             self.notification.setText(("회원이 아닙니다."))
             QTest.qWait(1000)
             self.main_UI()
+        elif trigger == 'start':
+            pass
         else:
             self.Find_Face_trigger = False
             self.loading.setGeometry(QtCore.QRect(1500, 0, 800, 480))
-            self.O_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
-            self.notification.setText(("회원이 아닙니다."))
+            self.X_img.setGeometry(QtCore.QRect(120, 150, 240, 240))
+            self.notification.setText(("서버에 오류가 있습니다."))
             QTest.qWait(1000)
             self.main_UI()
             

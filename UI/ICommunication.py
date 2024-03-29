@@ -17,7 +17,7 @@ class ICommunication(QThread):
     def run(self):
         if self._run_flag:
             try:
-                self.ICommunication_signal.emit(None)
+                self.ICommunication_signal.emit('start')
                 response = requests.post(URL, json=self.data)
                 print(response.text)
                 
@@ -26,9 +26,9 @@ class ICommunication(QThread):
                 self.ICommunication_signal.emit(response.text)
                 
             except:
-                self.ICommunication_signal.emit('False')
+                self.ICommunication_signal.emit('false')
         else:
-            self.ICommunication_signal.emit('False')
+            self.ICommunication_signal.emit('false')
 
     #동작 멈춤
     def stop(self):
