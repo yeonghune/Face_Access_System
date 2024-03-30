@@ -1,10 +1,13 @@
 const express = require('express');
+require('dotenv').config();
 var router = express.Router();
 const mongoose = require('mongoose');
 const Memberinfo = mongoose.model('Memberinfo');
 const axios = require('axios');
 const memberController = require('./memberController');
 const Member = mongoose.model('Member');
+
+const DEEP_LEARNING_SERVER_URL = process.env.DEEP_LEARNING_SERVER_URL;
 
 // ********* 회원 출입목록 삽입 함수 **********
 async function saveExistingMemberToDatabase(existingMember) {
@@ -63,7 +66,7 @@ router.post('/receive', async (req, res) => {
         //fs.writeFileSync(imagePath, imageBuffer);
     
         // 서버로 이미지 전송
-        const serverUrl = 'http://192.168.0.4:26999/receive';
+        const serverUrl = DEEP_LEARNING_SERVER_URL;
         const requestData = {
           Face : Face ,
           Id : Id
